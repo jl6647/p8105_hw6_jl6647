@@ -16,6 +16,7 @@ library(boot)
 library(modelr)
 library(mgcv)
 library(readxl)
+library(purrr)
 ```
 
 Problem 2
@@ -160,6 +161,37 @@ model_bg = lm(bwt ~ blength + gaweeks, data = birth) |>
 model_bbb = lm(bwt ~ bhead * blength * babysex, data = birth) |> 
   broom::tidy() |> 
   knitr::kable()
+model_bg
+model_bbb
 ```
 
+**Make this comparison in terms of the cross-validated prediction error; use crossv_mc and functions in purrr as appropriate**
+```{r}
+cv_df = 
+  crossv_mc(birth, 100) |> 
+  mutate(
+    mod1 = map(train, \(train) lm(bwt ~ blength + gaweeks, data = train) ),
+    mod2 = map(train, \(train) lm(bwt ~ bhead * blength * babysex, data = train)),
+    mod3 = map(train, \(train) lm(bwt ~ ., data = train))
+  ) |> 
+  mutate(
+    rmse_mod1 = map2_dbl(mod1, test, \(mod, test) rmse(model = mod, data = test)),
+    rmse_mod2 = map2_dbl(mod2, test, \(mod, test) rmse(model = mod, data = test)),
+    rmse_mod3 = map2_dbl(mod3, test, \(mod, test) rmse(model = mod, data = test))
+  )
+
+cv_df
+
+cv_df |> 
+  select(starts_with("rmse")) |> 
+  pivot_longer(
+    everything(),
+    names_to = "model", 
+    values_to = "rmse",
+    names_prefix = "rmse_") |> 
+  mutate(model = fct_inorder(model)) |> 
+  ggplot(aes(x = model, y = rmse)) + geom_violin()
+```
+
+From above, we could conclude that model3 (which consider all predictors) has the best distribution of RMSE (smallest RMSE) while model1 (using length at birth and gestational age as predictors) has the worst distribution of RMSE (largest RMSE).
 
