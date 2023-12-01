@@ -182,23 +182,15 @@ r2_dist
 This plot is a density plot of bootstrapped R-squared estimates. The distribution of the R-squared values is unimodal and shows a peak around 0.92, indicating that the majority of the bootstrapped samples have an R-squared value close to this number. Also, the distribution is slightly skewed to the left, but is approximately as normal distribution.
 
 ```{r}
-b1b2_dist = res |> 
+b1b2_dist = res |>
+  drop_na() |> 
   ggplot(aes(x = log_beta12)) +
   geom_density() +
   labs(title = "Distribution of Bootstrapped log(beta1*beta2) Estimates", x = "log(beta1*beta2)", y = "Density")
 b1b2_dist
 ```
 
-This plot is a density plot of bootstrapped Log Beta Product estimates. The distribution appears to be left-skewed, which may be caused by the `NA` generated during the logarithm calculation.
-```{r}
-b0b1_dist = res |> 
-  ggplot(aes(x = log_beta01)) +
-  geom_density() +
-  labs(title = "Distribution of Bootstrapped log(beta0*beta1) Estimates", x = "log(beta0*beta1)", y = "Density")
-b0b1_dist
-```
-
-This plot is also a density plot of bootstrapped Log Beta Product estimates. It follows the normal distribution.
+This plot is a density plot of bootstrapped Log Beta Product estimates. The distribution appears to be left-skewed, which may be caused by the `NA` generated during the logarithm calculation. So we can drop the `NA`.
 
 Problem 3
 
